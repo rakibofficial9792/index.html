@@ -135,6 +135,11 @@ button:hover{
   margin-top:20px;
 }
 
+.load-more-btn{
+  background:#ff9800;
+  margin-top:15px;
+}
+
 .total{
   font-size:18px;
   margin-bottom:18px;
@@ -182,17 +187,23 @@ Nothing is stored anywhere except Facebook Graph API.
 </select>
 
 <div class="tabs">
-<button id="tab0" class="active" onclick="switchTab(0)">
+
+<button id="tab0"
+class="active"
+onclick="switchTab(0)">
 Published
 </button>
 
-<button id="tab1" onclick="switchTab(1)">
+<button id="tab1"
+onclick="switchTab(1)">
 Scheduled
 </button>
 
-<button id="tab2" onclick="switchTab(2)">
+<button id="tab2"
+onclick="switchTab(2)">
 Today
 </button>
+
 </div>
 
 <button onclick="fetchPosts()">
@@ -208,6 +219,7 @@ Collect Post IDs
 
 let currentTab = 0;
 let allPosts = [];
+let nextPageUrl = null;
 
 function switchTab(tab){
 
@@ -251,6 +263,7 @@ async function fetchPosts(){
   document.getElementById('total');
 
   allPosts = [];
+  nextPageUrl = null;
 
   if(!token || !pageId){
 
@@ -283,6 +296,8 @@ async function fetchPosts(){
 
     const data = await response.json();
 
+    nextPageUrl = data.paging?.next || null;
+
     if(data.error){
 
       resultDiv.innerHTML =
@@ -312,129 +327,10 @@ async function fetchPosts(){
 
     }
 
-    if(posts.length===0){
-
-      resultDiv.innerHTML =
-      '⚠️ কোনো পোস্ট পাওয়া যায়নি';
-
-      return;
-
-    }
-
-    let html = '';
-
-    posts.forEach(post=>{
-
-      const postId =
-      escapeHtml(post.id);
-
-      let time = 'N/A';
-
-      let type =
-      currentTab===1
-      ? 'Scheduled'
-      : 'Published';
-
-      if(post.created_time){
-
-        time = new Date(
-        post.created_time
-        ).toLocaleString();
-
-      }
-
-      if(post.scheduled_publish_time){
-
-        time = new Date(
-        post.scheduled_publish_time * 1000
-        ).toLocaleString();
-
-      }
-
-      const caption =
-      post.message
-      ? escapeHtml(
-      post.message.substring(0,120)
-      )
-      : 'No Caption';
-
-      const image =
-      post.full_picture || '';
-
-      allPosts.push({
-
-        id:post.id,
-        type,
-        time,
-        caption
-
-      });
-
-      html += `
-
-      <div class="post">
-
-      ${image ? `
-      <img src="${image}">
-      ` : ''}
-
-      <div class="post-info">
-
-      <div class="caption">
-      ${caption}
-      </div>
-
-      <strong>${postId}</strong>
-
-      <br><br>
-
-      <small>
-      ${escapeHtml(time)} • ${type}
-      </small>
-
-      <br><br>
-
-      <a
-      class="open-link"
-      href="${post.permalink_url || '#'}"
-      target="_blank">
-
-      Open Post
-
-      </a>
-
-      </div>
-
-      <button
-      class="copy-btn"
-      onclick="copyPostId('${post.id}')">
-
-      Copy
-
-      </button>
-
-      </div>
-
-      `;
-
-    });
-
-    html += `
-
-    <button
-    class="download-btn"
-    onclick="downloadCSV()">
-
-    Download CSV
-
-    </button>
-
-    `;
+    renderPosts(posts,false);
 
     totalDiv.innerHTML =
     `✅ Total ${posts.length} Posts`;
-
-    resultDiv.innerHTML = html;
 
   }
 
@@ -442,6 +338,188 @@ async function fetchPosts(){
 
     resultDiv.innerHTML =
     '❌ Request failed';
+
+  }
+
+}
+
+function renderPosts(posts,append=true){
+
+  const resultDiv =
+  document.getElementById('result');
+
+  let html = '';
+
+  posts.forEach(post=>{
+
+    const postId =
+    escapeHtml(post.id);
+
+    let time = 'N/A';
+
+    let type =
+    currentTab===1
+    ? 'Scheduled'
+    : 'Published';
+
+    if(post.created_time){
+
+      time = new Date(
+      post.created_time
+      ).toLocaleString();
+
+    }
+
+    if(post.scheduled_publish_time){
+
+      time = new Date(
+      post.scheduled_publish_time * 1000
+      ).toLocaleString();
+
+    }
+
+    const caption =
+    post.message
+    ? escapeHtml(
+    post.message.substring(0,120)
+    )
+    : 'No Caption';
+
+    const image =
+    post.full_picture || '';
+
+    allPosts.push({
+
+      id:post.id,
+      type,
+      time,
+      caption
+
+    });
+
+    html += `
+
+    <div class="post">
+
+    ${image ? `
+    <img src="${image}">
+    ` : ''}
+
+    <div class="post-info">
+
+    <div class="caption">
+    ${caption}
+    </div>
+
+    <strong>${postId}</strong>
+
+    <br><br>
+
+    <small>
+    ${escapeHtml(time)} • ${type}
+    </small>
+
+    <br><br>
+
+    <a
+    class="open-link"
+    href="${post.permalink_url || '#'}"
+    target="_blank">
+
+    Open Post
+
+    </a>
+
+    </div>
+
+    <button
+    class="copy-btn"
+    onclick="copyPostId('${post.id}')">
+
+    Copy
+
+    </button>
+
+    </div>
+
+    `;
+
+  });
+
+  html += `
+
+  <button
+  class="download-btn"
+  onclick="downloadCSV()">
+
+  Download CSV
+
+  </button>
+
+  `;
+
+  if(nextPageUrl){
+
+    html += `
+
+    <button
+    class="load-more-btn"
+    onclick="loadMorePosts()">
+
+    Load More Posts
+
+    </button>
+
+    `;
+
+  }
+
+  if(append){
+
+    resultDiv.innerHTML += html;
+
+  }else{
+
+    resultDiv.innerHTML = html;
+
+  }
+
+}
+
+async function loadMorePosts(){
+
+  if(!nextPageUrl) return;
+
+  const oldButton =
+  document.querySelector('.load-more-btn');
+
+  if(oldButton){
+
+    oldButton.remove();
+
+  }
+
+  try{
+
+    const response =
+    await fetch(nextPageUrl);
+
+    const data =
+    await response.json();
+
+    nextPageUrl =
+    data.paging?.next || null;
+
+    const posts =
+    data.data || [];
+
+    renderPosts(posts,true);
+
+  }
+
+  catch(error){
+
+    alert('❌ Failed to load more posts');
 
   }
 
