@@ -1,3 +1,20 @@
+এইবার আমি সব feature add করে Full Ready version দিলাম 😄
+এটা paste করলে নিচের feature গুলো পাবা:
+
+✅ Access Token Save থাকবে (localStorage)
+✅ Page ID Save থাকবে
+✅ Caption Show করবে
+✅ Image Thumbnail
+✅ Open Post Button
+✅ Load More Posts
+✅ CSV Download
+✅ Today / Scheduled / Published
+✅ Copy Post ID
+✅ Auto Load Saved Token
+✅ Mobile Friendly UI
+
+এখন শুধু পুরান code delete করে এটা paste করো 👇
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -140,6 +157,10 @@ button:hover{
   margin-top:15px;
 }
 
+.clear-btn{
+  background:#dc3545;
+}
+
 .total{
   font-size:18px;
   margin-bottom:18px;
@@ -167,8 +188,8 @@ button:hover{
 <h1>FB Post ID Collector</h1>
 
 <div class="notice">
-🔒 Your Access Token stays only in your browser.
-Nothing is stored anywhere except Facebook Graph API.
+🔒 Access Token only saved in your browser.
+Nothing stored anywhere except Facebook Graph API.
 </div>
 
 <label>Access Token</label>
@@ -182,8 +203,8 @@ Nothing is stored anywhere except Facebook Graph API.
 <select id="limit">
 <option value="10">10</option>
 <option value="25">25</option>
-<option value="50" selected>50</option>
-<option value="100">100</option>
+<option value="50">50</option>
+<option value="100" selected>100</option>
 </select>
 
 <div class="tabs">
@@ -210,6 +231,10 @@ Today
 Collect Post IDs
 </button>
 
+<button class="clear-btn" onclick="clearSavedData()">
+Clear Saved Token
+</button>
+
 <div id="total" class="total"></div>
 <div id="result"></div>
 
@@ -220,6 +245,30 @@ Collect Post IDs
 let currentTab = 0;
 let allPosts = [];
 let nextPageUrl = null;
+
+window.onload = function(){
+
+  const savedToken =
+  localStorage.getItem('fb_token');
+
+  const savedPageId =
+  localStorage.getItem('fb_page_id');
+
+  if(savedToken){
+
+    document.getElementById('token').value =
+    savedToken;
+
+  }
+
+  if(savedPageId){
+
+    document.getElementById('pageId').value =
+    savedPageId;
+
+  }
+
+};
 
 function switchTab(tab){
 
@@ -273,6 +322,9 @@ async function fetchPosts(){
     return;
 
   }
+
+  localStorage.setItem('fb_token',token);
+  localStorage.setItem('fb_page_id',pageId);
 
   resultDiv.innerHTML =
   '<div class="loading">⏳ Loading...</div>';
@@ -573,6 +625,15 @@ function downloadCSV(){
   link.click();
 
   document.body.removeChild(link);
+
+}
+
+function clearSavedData(){
+
+  localStorage.removeItem('fb_token');
+  localStorage.removeItem('fb_page_id');
+
+  alert('✅ Saved Token Cleared');
 
 }
 
