@@ -3,327 +3,502 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>FB Post ID Collector</title>
 
 <meta http-equiv="Content-Security-Policy"
-content="default-src 'self'; connect-src https://graph.facebook.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+content="default-src 'self'; connect-src https://graph.facebook.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src * data:;">
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #0f0f0f;
-  color: white;
-  padding: 20px;
-  margin: 0;
+
+body{
+  font-family:Arial,sans-serif;
+  background:#0f0f0f;
+  color:white;
+  padding:20px;
+  margin:0;
 }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-  background: #181818;
-  padding: 20px;
-  border-radius: 14px;
+.container{
+  max-width:900px;
+  margin:auto;
+  background:#181818;
+  padding:20px;
+  border-radius:16px;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 25px;
+h1{
+  text-align:center;
+  margin-bottom:25px;
 }
 
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: bold;
+label{
+  display:block;
+  margin-bottom:6px;
+  font-weight:bold;
 }
 
 input,
 select,
-button {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 16px;
-  border-radius: 8px;
-  border: none;
-  box-sizing: border-box;
+button{
+  width:100%;
+  padding:12px;
+  margin-bottom:16px;
+  border-radius:10px;
+  border:none;
+  box-sizing:border-box;
 }
 
 input,
-select {
-  background: #262626;
-  color: white;
+select{
+  background:#262626;
+  color:white;
 }
 
-button {
-  background: #1877f2;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
+button{
+  background:#1877f2;
+  color:white;
+  cursor:pointer;
+  font-size:16px;
+  font-weight:bold;
 }
 
-button:hover {
-  background: #0d63d6;
+button:hover{
+  background:#0d63d6;
 }
 
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
 }
 
-.tabs button {
-  background: #333;
+.tabs button{
+  background:#333;
 }
 
-.tabs button.active {
-  background: #1877f2;
+.tabs button.active{
+  background:#1877f2;
 }
 
-.notice {
-  background: #1f2c1f;
-  border: 1px solid #2f7a2f;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  color: #9df59d;
-  font-size: 14px;
+.notice{
+  background:#1f2c1f;
+  border:1px solid #2f7a2f;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:20px;
+  color:#9df59d;
+  font-size:14px;
 }
 
-.post {
-  background: #242424;
-  padding: 14px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
+.post{
+  background:#242424;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:14px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
 }
 
-.post-info {
-  flex: 1;
-  word-break: break-all;
+.post img{
+  width:90px;
+  height:90px;
+  object-fit:cover;
+  border-radius:10px;
 }
 
-.copy-btn {
-  width: auto;
-  padding: 10px 14px;
-  background: #28a745;
+.post-info{
+  flex:1;
+  word-break:break-word;
 }
 
-.copy-btn:hover {
-  background: #1e8335;
+.caption{
+  font-size:15px;
+  font-weight:bold;
+  margin-bottom:8px;
+  color:#76ff76;
 }
 
-.download-btn {
-  background: #28a745;
-  margin-top: 20px;
+.copy-btn{
+  width:auto;
+  padding:10px 14px;
+  background:#28a745;
 }
 
-.total {
-  font-size: 18px;
-  margin-bottom: 18px;
-  color: #76ff76;
+.copy-btn:hover{
+  background:#1f8235;
 }
 
-.loading {
-  text-align: center;
-  padding: 20px;
+.download-btn{
+  background:#28a745;
+  margin-top:20px;
 }
+
+.total{
+  font-size:18px;
+  margin-bottom:18px;
+  color:#76ff76;
+}
+
+.loading{
+  text-align:center;
+  padding:20px;
+}
+
+.open-link{
+  color:#4da3ff;
+  text-decoration:none;
+  font-size:14px;
+}
+
 </style>
 </head>
+
 <body>
 
 <div class="container">
-  <h1>FB Post ID Collector</h1>
 
-  <div class="notice">
-    🔒 Your Access Token stays only in your browser. Nothing is sent to any external server except Facebook Graph API.
-  </div>
+<h1>FB Post ID Collector</h1>
 
-  <label>Access Token</label>
-  <input type="password" id="token" placeholder="EAAxxxxxxxxxxxx">
+<div class="notice">
+🔒 Your Access Token stays only in your browser.
+Nothing is stored anywhere except Facebook Graph API.
+</div>
 
-  <label>Page ID</label>
-  <input type="text" id="pageId" placeholder="1234567890">
+<label>Access Token</label>
+<input type="password" id="token" placeholder="EAAxxxxxxxxxxxx">
 
-  <label>Limit</label>
-  <select id="limit">
-    <option value="10">10</option>
-    <option value="25">25</option>
-    <option value="50" selected>50</option>
-    <option value="100">100</option>
-  </select>
+<label>Page ID</label>
+<input type="text" id="pageId" placeholder="1234567890">
 
-  <div class="tabs">
-    <button id="tab0" class="active" onclick="switchTab(0)">Published</button>
-    <button id="tab1" onclick="switchTab(1)">Scheduled</button>
-    <button id="tab2" onclick="switchTab(2)">Today</button>
-  </div>
+<label>Limit</label>
 
-  <button onclick="fetchPosts()">Collect Post IDs</button>
+<select id="limit">
+<option value="10">10</option>
+<option value="25">25</option>
+<option value="50" selected>50</option>
+<option value="100">100</option>
+</select>
 
-  <div id="total" class="total"></div>
-  <div id="result"></div>
+<div class="tabs">
+<button id="tab0" class="active" onclick="switchTab(0)">
+Published
+</button>
+
+<button id="tab1" onclick="switchTab(1)">
+Scheduled
+</button>
+
+<button id="tab2" onclick="switchTab(2)">
+Today
+</button>
+</div>
+
+<button onclick="fetchPosts()">
+Collect Post IDs
+</button>
+
+<div id="total" class="total"></div>
+<div id="result"></div>
+
 </div>
 
 <script>
+
 let currentTab = 0;
 let allPosts = [];
 
-function switchTab(tab) {
+function switchTab(tab){
+
   currentTab = tab;
 
-  document.querySelectorAll('.tabs button').forEach((btn, index) => {
-    btn.classList.toggle('active', index === tab);
+  document.querySelectorAll('.tabs button')
+  .forEach((btn,index)=>{
+
+    btn.classList.toggle('active',index===tab);
+
   });
+
 }
 
-function escapeHtml(text) {
+function escapeHtml(text){
+
   return String(text)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  .replace(/&/g,'&amp;')
+  .replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;')
+  .replace(/'/g,'&#039;');
+
 }
 
-async function fetchPosts() {
-  const token = document.getElementById('token').value.trim();
-  const pageId = document.getElementById('pageId').value.trim();
-  const limit = document.getElementById('limit').value;
+async function fetchPosts(){
 
-  const resultDiv = document.getElementById('result');
-  const totalDiv = document.getElementById('total');
+  const token =
+  document.getElementById('token').value.trim();
+
+  const pageId =
+  document.getElementById('pageId').value.trim();
+
+  const limit =
+  document.getElementById('limit').value;
+
+  const resultDiv =
+  document.getElementById('result');
+
+  const totalDiv =
+  document.getElementById('total');
 
   allPosts = [];
 
-  if (!token || !pageId) {
-    resultDiv.innerHTML = '❌ Token এবং Page ID দিতে হবে';
+  if(!token || !pageId){
+
+    resultDiv.innerHTML =
+    '❌ Token এবং Page ID দিতে হবে';
+
     return;
+
   }
 
-  resultDiv.innerHTML = '<div class="loading">⏳ Loading...</div>';
+  resultDiv.innerHTML =
+  '<div class="loading">⏳ Loading...</div>';
+
   totalDiv.innerHTML = '';
 
-  try {
+  try{
+
     let endpoint = 'feed';
 
-    if (currentTab === 1) {
-      endpoint = 'scheduled_posts';
+    if(currentTab===1){
+
+      endpoint='scheduled_posts';
+
     }
 
-    const url = `https://graph.facebook.com/v20.0/${pageId}/${endpoint}?fields=id,created_time,scheduled_publish_time&limit=${limit}&access_token=${token}`;
+    const url =
+`https://graph.facebook.com/v20.0/${pageId}/${endpoint}?fields=id,message,full_picture,permalink_url,created_time,scheduled_publish_time&limit=${limit}&access_token=${token}`;
 
     const response = await fetch(url);
+
     const data = await response.json();
 
-    if (data.error) {
-      resultDiv.innerHTML = `❌ ${escapeHtml(data.error.message)}`;
+    if(data.error){
+
+      resultDiv.innerHTML =
+      `❌ ${escapeHtml(data.error.message)}`;
+
       return;
+
     }
 
     let posts = data.data || [];
 
-    if (currentTab === 2) {
+    if(currentTab===2){
+
       const today = new Date();
 
-      posts = posts.filter(post => {
-        if (!post.created_time) return false;
+      posts = posts.filter(post=>{
+
+        if(!post.created_time) return false;
 
         const d = new Date(post.created_time);
 
-        return d.getDate() === today.getDate() &&
-               d.getMonth() === today.getMonth() &&
-               d.getFullYear() === today.getFullYear();
+        return d.getDate()===today.getDate() &&
+        d.getMonth()===today.getMonth() &&
+        d.getFullYear()===today.getFullYear();
+
       });
+
     }
 
-    if (posts.length === 0) {
-      resultDiv.innerHTML = '⚠️ কোনো পোস্ট পাওয়া যায়নি';
+    if(posts.length===0){
+
+      resultDiv.innerHTML =
+      '⚠️ কোনো পোস্ট পাওয়া যায়নি';
+
       return;
+
     }
 
     let html = '';
 
-    posts.forEach(post => {
-      const postId = escapeHtml(post.id);
+    posts.forEach(post=>{
+
+      const postId =
+      escapeHtml(post.id);
 
       let time = 'N/A';
-      let type = currentTab === 1 ? 'Scheduled' : 'Published';
 
-      if (post.created_time) {
-        time = new Date(post.created_time).toLocaleString();
+      let type =
+      currentTab===1
+      ? 'Scheduled'
+      : 'Published';
+
+      if(post.created_time){
+
+        time = new Date(
+        post.created_time
+        ).toLocaleString();
+
       }
 
-      if (post.scheduled_publish_time) {
-        time = new Date(post.scheduled_publish_time * 1000).toLocaleString();
+      if(post.scheduled_publish_time){
+
+        time = new Date(
+        post.scheduled_publish_time * 1000
+        ).toLocaleString();
+
       }
+
+      const caption =
+      post.message
+      ? escapeHtml(
+      post.message.substring(0,120)
+      )
+      : 'No Caption';
+
+      const image =
+      post.full_picture || '';
 
       allPosts.push({
-        id: post.id,
+
+        id:post.id,
         type,
-        time
+        time,
+        caption
+
       });
 
       html += `
-        <div class="post">
-          <div class="post-info">
-            <strong>${postId}</strong><br>
-            <small>${escapeHtml(time)} • ${type}</small>
-          </div>
 
-          <button class="copy-btn" onclick="copyPostId('${post.id}')">
-            Copy
-          </button>
-        </div>
+      <div class="post">
+
+      ${image ? `
+      <img src="${image}">
+      ` : ''}
+
+      <div class="post-info">
+
+      <div class="caption">
+      ${caption}
+      </div>
+
+      <strong>${postId}</strong>
+
+      <br><br>
+
+      <small>
+      ${escapeHtml(time)} • ${type}
+      </small>
+
+      <br><br>
+
+      <a
+      class="open-link"
+      href="${post.permalink_url || '#'}"
+      target="_blank">
+
+      Open Post
+
+      </a>
+
+      </div>
+
+      <button
+      class="copy-btn"
+      onclick="copyPostId('${post.id}')">
+
+      Copy
+
+      </button>
+
+      </div>
+
       `;
+
     });
 
     html += `
-      <button class="download-btn" onclick="downloadCSV()">
-        Download CSV
-      </button>
+
+    <button
+    class="download-btn"
+    onclick="downloadCSV()">
+
+    Download CSV
+
+    </button>
+
     `;
 
-    totalDiv.innerHTML = `✅ Total ${posts.length} Posts`;
+    totalDiv.innerHTML =
+    `✅ Total ${posts.length} Posts`;
+
     resultDiv.innerHTML = html;
 
-  } catch (error) {
-    resultDiv.innerHTML = '❌ Request failed';
   }
+
+  catch(error){
+
+    resultDiv.innerHTML =
+    '❌ Request failed';
+
+  }
+
 }
 
-function copyPostId(id) {
+function copyPostId(id){
+
   navigator.clipboard.writeText(id)
-    .then(() => {
-      alert('✅ Copied: ' + id);
-    });
+
+  .then(()=>{
+
+    alert('✅ Copied: ' + id);
+
+  });
+
 }
 
-function downloadCSV() {
-  if (allPosts.length === 0) return;
+function downloadCSV(){
 
-  let csv = 'Post ID,Type,Date & Time\n';
+  if(allPosts.length===0) return;
 
-  allPosts.forEach(post => {
-    csv += `"${post.id}","${post.type}","${post.time}"\n`;
+  let csv =
+  'Post ID,Type,Date & Time,Caption\n';
+
+  allPosts.forEach(post=>{
+
+    csv +=
+`"${post.id}","${post.type}","${post.time}","${post.caption}"\n`;
+
   });
 
-  const blob = new Blob([csv], {
-    type: 'text/csv;charset=utf-8;'
+  const blob = new Blob([csv],{
+
+    type:'text/csv;charset=utf-8;'
+
   });
 
-  const url = URL.createObjectURL(blob);
+  const url =
+  URL.createObjectURL(blob);
 
-  const link = document.createElement('a');
+  const link =
+  document.createElement('a');
+
   link.href = url;
-  link.download = 'fb_post_ids.csv';
+
+  link.download =
+  'fb_post_ids.csv';
 
   document.body.appendChild(link);
+
   link.click();
+
   document.body.removeChild(link);
+
 }
+
 </script>
+
 </body>
 </html>
