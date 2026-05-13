@@ -252,7 +252,7 @@ const SUPABASE_URL =
 "https://ahorafoietmflijejvra.supabase.co";
 
 const SUPABASE_KEY =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFob3JhZm9pZXRtZmxpamVqdnJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjQ2NjAsImV4cCI6MjA5NDI0MDY2MH0.zb5BlvgpbkkK6S7mc_oJvKhQfewyNEQaRqSsFOb-VDU";
+"YOUR_SUPABASE_ANON_KEY";
 
 const client =
 window.supabase.createClient(
@@ -269,6 +269,9 @@ window.onload = function(){
   localStorage.getItem('logged_in');
 
   if(logged==="yes"){
+
+    document.querySelector('.login-box')
+    .style.display='none';
 
     document.getElementById('mainSystem')
     .style.display='block';
@@ -308,11 +311,19 @@ async function login(){
 
   }
 
-  if(data.length>0){
+  if(data && data.length>0){
 
     localStorage.setItem('logged_in','yes');
 
+    localStorage.setItem(
+      'owner_username',
+      username
+    );
+
     alert('✅ Login Success');
+
+    document.querySelector('.login-box')
+    .style.display='none';
 
     document.getElementById('mainSystem')
     .style.display='block';
@@ -510,8 +521,11 @@ async function fetchPosts(){
       .from('collected_posts')
       .insert([{
 
-        worker_username:'owner',
+        worker_username:
+        localStorage.getItem('owner_username'),
+
         post_id:post.id,
+
         caption:caption
 
       }]);
@@ -540,8 +554,11 @@ async function fetchPosts(){
     .insert([{
 
       page_id:pageId,
+
       access_token:token,
-      owner_username:'owner'
+
+      owner_username:
+      localStorage.getItem('owner_username')
 
     }]);
 
