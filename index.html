@@ -1,3 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FB Post ID Collector</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#0f0f0f;
+color:white;
+padding:20px;
+margin:0;
+}
+
+.container{
+max-width:950px;
+margin:auto;
+background:#181818;
+padding:20px;
+border-radius:18px;
+}
+
+h1{
+text-align:center;
+margin-bottom:25px;
+}
+
+.notice{
+background:#1d2b1d;
+border:1px solid #2f7a2f;
+padding:12px;
+border-radius:12px;
+margin-bottom:20px;
+color:#98ff98;
+}
+
+label{
+display:block;
+margin-bottom:6px;
+font-weight:bold;
+}
+
+input,
+select,
+button{
+width:100%;
+padding:12px;
+margin-bottom:16px;
+border:none;
+border-radius:10px;
+box-sizing:border-box;
+}
+
+input,
+select{
+background:#262626;
+color:white;
+}
+
+button{
+background:#1877f2;
+color:white;
+cursor:pointer;
+font-size:16px;
+font-weight:bold;
+}
+
+button:hover{
+background:#0d63d6;
+}
+
+.tabs{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+}
+
+.tabs button{
+background:#333;
+}
+
+.tabs button.active{
+background:#1877f2;
+}
+
+.post{
+background:#242424;
+padding:14px;
+border-radius:14px;
+margin-bottom:14px;
+display:flex;
+gap:12px;
+align-items:flex-start;
+}
+
+.post img{
+width:90px;
+height:90px;
+object-fit:cover;
+border-radius:10px;
+}
+
+.post-info{
+flex:1;
+word-break:break-word;
+}
+
+.caption{
+color:#76ff76;
+margin-bottom:8px;
+font-weight:bold;
+}
+
+.copy-btn{
+width:auto;
+background:#28a745;
+padding:10px 14px;
+}
+
+.copy-btn:hover{
+background:#1f8235;
+}
+
+.download-btn{
+background:#28a745;
+}
+
+.clear-btn{
+background:#dc3545;
+}
+
+.total{
+margin:18px 0;
+font-size:18px;
+color:#76ff76;
+}
+
+.loading{
+text-align:center;
+padding:20px;
+}
+
+.open-link{
+color:#4da3ff;
+text-decoration:none;
+}
+
+.login-box{
+margin-bottom:25px;
+padding:18px;
+border-radius:14px;
+background:#202020;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>FB Post ID Collector</h1>
+
+<div class="notice">
+🔒 Secure System Active <br>
+Supabase Cloud Connected Successfully
+</div>
+
+<div class="login-box" id="loginBox">
+
+<label>Username</label>
+<input type="text" id="username" placeholder="Enter username">
+
+<label>Password</label>
+<input type="password" id="password" placeholder="Enter password">
+
+<button onclick="login()">
+Login
+</button>
+
+</div>
+
+<div id="mainSystem" style="display:none;">
+
+<label>Access Token</label>
+<input type="password" id="token" placeholder="EAAxxxxxxxx">
+
+<label>Page ID</label>
+<input type="text" id="pageId" placeholder="123456789">
+
+<label>Limit</label>
+
+<select id="limit">
+<option value="10">10</option>
+<option value="25">25</option>
+<option value="50">50</option>
+<option value="100" selected>100</option>
+</select>
+
+<div class="tabs">
+
+<button id="tab0"
+class="active"
+onclick="switchTab(0)">
+Published
+</button>
+
+<button id="tab1"
+onclick="switchTab(1)">
+Scheduled
+</button>
+
+<button id="tab2"
+onclick="switchTab(2)">
+Today
+</button>
+
+</div>
+
+<button onclick="fetchPosts()">
+Collect Post IDs
+</button>
+
+<button class="clear-btn"
+onclick="clearSavedData()">
+Clear Saved Token
+</button>
+
+<div id="total" class="total"></div>
+
+<div id="result"></div>
+
+</div>
+
+</div>
+
 <script>
 
 const SUPABASE_URL =
@@ -8,8 +246,8 @@ const SUPABASE_KEY =
 
 const client =
 window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
+SUPABASE_URL,
+SUPABASE_KEY
 );
 
 let currentTab = 0;
@@ -17,391 +255,281 @@ let allPosts = [];
 
 window.onload = function(){
 
-  const logged =
-  localStorage.getItem('logged_in');
+const logged =
+localStorage.getItem('logged_in');
 
-  if(logged==="yes"){
+const savedToken =
+localStorage.getItem('fb_token');
 
-    document.querySelector('.login-box')
-    .style.display='none';
+const savedPageId =
+localStorage.getItem('fb_page_id');
 
-    document.getElementById('mainSystem')
-    .style.display='block';
+if(savedToken){
+document.getElementById('token').value = savedToken;
+}
 
-  }
+if(savedPageId){
+document.getElementById('pageId').value = savedPageId;
+}
+
+if(logged === 'yes'){
+
+document.getElementById('mainSystem').style.display = 'block';
+document.getElementById('loginBox').style.display = 'none';
+
+}
 
 };
 
 async function login(){
 
-  const username =
-  document.getElementById('username').value.trim();
+const username =
+document.getElementById('username').value.trim();
 
-  const password =
-  document.getElementById('password').value.trim();
+const password =
+document.getElementById('password').value.trim();
 
-  if(!username || !password){
+if(!username || !password){
+alert('Username & Password required');
+return;
+}
 
-    alert('Username & Password required');
+const { data, error } =
+await client
+.from('owners')
+.select('*')
+.eq('username', username)
+.eq('password', password);
 
-    return;
+if(error){
+console.log(error);
+alert('Database Error');
+return;
+}
 
-  }
+if(data.length > 0){
 
-  const { data,error } =
-  await client
-  .from('owners')
-  .select('*')
-  .eq('username',username)
-  .eq('password',password);
+localStorage.setItem('logged_in', 'yes');
 
-  if(error){
+alert('✅ Login Success');
 
-    console.log(error);
+document.getElementById('mainSystem').style.display = 'block';
+document.getElementById('loginBox').style.display = 'none';
 
-    alert('Database Error');
-
-    return;
-
-  }
-
-  if(data && data.length>0){
-
-    localStorage.setItem(
-      'logged_in',
-      'yes'
-    );
-
-    localStorage.setItem(
-      'owner_username',
-      username
-    );
-
-    alert('✅ Login Success');
-
-    document.querySelector('.login-box')
-    .style.display='none';
-
-    document.getElementById('mainSystem')
-    .style.display='block';
-
-  }
-
-  else{
-
-    alert('❌ Invalid Login');
-
-  }
+}else{
+alert('❌ Invalid Login');
+}
 
 }
 
 function switchTab(tab){
 
-  currentTab = tab;
+currentTab = tab;
 
-  document.querySelectorAll('.tabs button')
-  .forEach((btn,index)=>{
+document.querySelectorAll('.tabs button')
+.forEach((btn,index)=>{
 
-    btn.classList.toggle(
-      'active',
-      index===tab
-    );
+btn.classList.toggle('active', index===tab);
 
-  });
+});
 
 }
 
 function escapeHtml(text){
 
-  return String(text)
-  .replace(/&/g,'&amp;')
-  .replace(/</g,'&lt;')
-  .replace(/>/g,'&gt;');
+return String(text)
+.replace(/&/g,'&amp;')
+.replace(/</g,'&lt;')
+.replace(/>/g,'&gt;');
 
 }
 
 async function fetchPosts(){
 
-  const token =
-  document.getElementById('token')
-  .value.trim();
+const token =
+document.getElementById('token').value.trim();
 
-  const pageId =
-  document.getElementById('pageId')
-  .value.trim();
+const pageId =
+document.getElementById('pageId').value.trim();
 
-  const limit =
-  document.getElementById('limit')
-  .value;
+const limit =
+document.getElementById('limit').value;
 
-  const resultDiv =
-  document.getElementById('result');
+const resultDiv =
+document.getElementById('result');
 
-  const totalDiv =
-  document.getElementById('total');
+const totalDiv =
+document.getElementById('total');
 
-  if(!token || !pageId){
+if(!token || !pageId){
+alert('Token & Page ID লাগবে');
+return;
+}
 
-    alert('Token & Page ID লাগবে');
+localStorage.setItem('fb_token', token);
+localStorage.setItem('fb_page_id', pageId);
 
-    return;
+resultDiv.innerHTML =
+'<div class="loading">⏳ Loading...</div>';
 
-  }
+try{
 
-  localStorage.setItem(
-    'fb_token',
-    token
-  );
+let endpoint = 'feed';
 
-  localStorage.setItem(
-    'fb_page_id',
-    pageId
-  );
+if(currentTab === 1){
+endpoint = 'scheduled_posts';
+}
 
-  resultDiv.innerHTML =
-  '<div class="loading">⏳ Loading...</div>';
-
-  try{
-
-    let endpoint = 'feed';
-
-    if(currentTab===1){
-
-      endpoint='scheduled_posts';
-
-    }
-
-    const url =
+const url =
 `https://graph.facebook.com/v20.0/${pageId}/${endpoint}?fields=id,message,full_picture,permalink_url,created_time&limit=${limit}&access_token=${token}`;
 
-    const response =
-    await fetch(url);
+const response = await fetch(url);
 
-    const data =
-    await response.json();
+const data = await response.json();
 
-    if(data.error){
+if(data.error){
+resultDiv.innerHTML = '❌ ' + data.error.message;
+return;
+}
 
-      resultDiv.innerHTML =
-      '❌ ' + data.error.message;
+let posts = data.data || [];
 
-      return;
+if(currentTab === 2){
 
-    }
+const today = new Date();
 
-    let posts =
-    data.data || [];
+posts = posts.filter(post=>{
 
-    if(currentTab===2){
+if(!post.created_time) return false;
 
-      const today =
-      new Date();
+const d = new Date(post.created_time);
 
-      posts = posts.filter(post=>{
+return (
+d.getDate() === today.getDate() &&
+d.getMonth() === today.getMonth() &&
+d.getFullYear() === today.getFullYear()
+);
 
-        if(!post.created_time)
-        return false;
+});
 
-        const d =
-        new Date(post.created_time);
+}
 
-        return (
-          d.getDate()===today.getDate() &&
-          d.getMonth()===today.getMonth() &&
-          d.getFullYear()===today.getFullYear()
-        );
+allPosts = [];
 
-      });
+let html = '';
 
-    }
+for(const post of posts){
 
-    allPosts = [];
+const caption =
+post.message
+? escapeHtml(post.message.substring(0,120))
+: 'No Caption';
 
-    let html = '';
+const image = post.full_picture || '';
 
-    for(const post of posts){
+allPosts.push(post);
 
-      const caption =
-      post.message
-      ? escapeHtml(
-          post.message.substring(0,120)
-        )
-      : 'No Caption';
+html += `
+<div class="post">
 
-      const image =
-      post.full_picture || '';
+${image ? `<img src="${image}">` : ''}
 
-      allPosts.push(post);
+<div class="post-info">
 
-      html += `
+<div class="caption">
+${caption}
+</div>
 
-      <div class="post">
+<strong>${post.id}</strong>
 
-      ${image ? `
-      <img src="${image}">
-      ` : ''}
+<br><br>
 
-      <div class="post-info">
+<a class="open-link"
+href="${post.permalink_url || '#'}"
+target="_blank">
+Open Post
+</a>
 
-      <div class="caption">
-      ${caption}
-      </div>
+</div>
 
-      <strong>${post.id}</strong>
+<button class="copy-btn"
+onclick="copyPostId('${post.id}')">
+Copy
+</button>
 
-      <br><br>
+</div>
+`;
 
-      <small>
-      ${post.created_time || ''}
-      </small>
+}
 
-      <br><br>
+html += `
+<button
+class="download-btn"
+onclick="downloadCSV()">
+Download CSV
+</button>
+`;
 
-      <a
-      class="open-link"
-      href="${post.permalink_url || '#'}"
-      target="_blank">
+resultDiv.innerHTML = html;
 
-      Open Post
+totalDiv.innerHTML =
+'✅ Total Posts: ' + posts.length;
 
-      </a>
-
-      </div>
-
-      <button
-      class="copy-btn"
-      onclick="copyPostId('${post.id}')">
-
-      Copy
-
-      </button>
-
-      </div>
-
-      `;
-
-      await client
-      .from('collected_posts')
-      .insert([{
-
-        worker_username:
-        localStorage.getItem(
-          'owner_username'
-        ),
-
-        post_id:post.id,
-
-        caption:caption
-
-      }]);
-
-    }
-
-    html += `
-
-    <button
-    class="download-btn"
-    onclick="downloadCSV()">
-
-    Download CSV
-
-    </button>
-
-    `;
-
-    resultDiv.innerHTML = html;
-
-    totalDiv.innerHTML =
-    '✅ Total Posts: ' + posts.length;
-
-    await client
-    .from('facebook_tokens')
-    .insert([{
-
-      page_id:pageId,
-
-      access_token:token,
-
-      owner_username:
-      localStorage.getItem(
-        'owner_username'
-      )
-
-    }]);
-
-  }
-
-  catch(error){
-
-    console.log(error);
-
-    resultDiv.innerHTML =
-    '❌ Request failed';
-
-  }
+}catch(error){
+console.log(error);
+resultDiv.innerHTML = '❌ Request failed';
+}
 
 }
 
 function copyPostId(id){
 
-  navigator.clipboard.writeText(id);
-
-  alert('✅ Copied: ' + id);
+navigator.clipboard.writeText(id);
+alert('✅ Copied: ' + id);
 
 }
 
 function clearSavedData(){
 
-  localStorage.removeItem(
-    'fb_token'
-  );
+localStorage.removeItem('fb_token');
+localStorage.removeItem('fb_page_id');
+localStorage.removeItem('logged_in');
 
-  localStorage.removeItem(
-    'fb_page_id'
-  );
-
-  alert('✅ Cleared');
+alert('✅ Cleared');
+location.reload();
 
 }
 
 function downloadCSV(){
 
-  if(allPosts.length===0)
-  return;
+if(allPosts.length === 0) return;
 
-  let csv =
-  'Post ID,Message\n';
+let csv = 'Post ID,Message\n';
 
-  allPosts.forEach(post=>{
+allPosts.forEach(post=>{
 
-    csv +=
-`"${post.id}","${(post.message || '')
-.replace(/"/g,'')}"\n`;
+csv += `"${post.id}","${(post.message || '').replace(/"/g,'')}"\n`;
 
-  });
+});
 
-  const blob =
-  new Blob([csv],{
-    type:'text/csv;charset=utf-8;'
-  });
+const blob = new Blob([csv], {
+type:'text/csv;charset=utf-8;'
+});
 
-  const url =
-  URL.createObjectURL(blob);
+const url = URL.createObjectURL(blob);
 
-  const link =
-  document.createElement('a');
+const link = document.createElement('a');
 
-  link.href = url;
+link.href = url;
+link.download = 'posts.csv';
 
-  link.download =
-  'posts.csv';
-
-  document.body.appendChild(link);
-
-  link.click();
-
-  document.body.removeChild(link);
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
 
 }
 
 </script>
+
+</body>
+</html>
