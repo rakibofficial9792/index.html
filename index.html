@@ -27,16 +27,25 @@ body{
 }
 
 .container{
-  max-width:900px;
+  max-width:950px;
   margin:auto;
   background:#181818;
   padding:20px;
-  border-radius:16px;
+  border-radius:18px;
 }
 
 h1{
   text-align:center;
   margin-bottom:25px;
+}
+
+.notice{
+  background:#1d2b1d;
+  border:1px solid #2f7a2f;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:20px;
+  color:#98ff98;
 }
 
 label{
@@ -51,8 +60,8 @@ button{
   width:100%;
   padding:12px;
   margin-bottom:16px;
-  border-radius:10px;
   border:none;
+  border-radius:10px;
   box-sizing:border-box;
 }
 
@@ -88,16 +97,6 @@ button:hover{
   background:#1877f2;
 }
 
-.notice{
-  background:#1f2c1f;
-  border:1px solid #2f7a2f;
-  padding:12px;
-  border-radius:10px;
-  margin-bottom:20px;
-  color:#9df59d;
-  font-size:14px;
-}
-
 .post{
   background:#242424;
   padding:14px;
@@ -121,16 +120,15 @@ button:hover{
 }
 
 .caption{
-  font-size:15px;
-  font-weight:bold;
-  margin-bottom:8px;
   color:#76ff76;
+  margin-bottom:8px;
+  font-weight:bold;
 }
 
 .copy-btn{
   width:auto;
-  padding:10px 14px;
   background:#28a745;
+  padding:10px 14px;
 }
 
 .copy-btn:hover{
@@ -139,7 +137,6 @@ button:hover{
 
 .download-btn{
   background:#28a745;
-  margin-top:20px;
 }
 
 .clear-btn{
@@ -147,8 +144,8 @@ button:hover{
 }
 
 .total{
+  margin:18px 0;
   font-size:18px;
-  margin-bottom:18px;
   color:#76ff76;
 }
 
@@ -160,7 +157,13 @@ button:hover{
 .open-link{
   color:#4da3ff;
   text-decoration:none;
-  font-size:14px;
+}
+
+.login-box{
+  margin-bottom:25px;
+  padding:18px;
+  border-radius:14px;
+  background:#202020;
 }
 
 </style>
@@ -174,8 +177,24 @@ button:hover{
 
 <div class="notice">
 🔒 Secure System Active <br>
-Token saved locally + Supabase cloud backup enabled.
+Supabase Cloud Connected Successfully
 </div>
+
+<div class="login-box">
+
+<label>Username</label>
+<input type="text" id="username" placeholder="Enter username">
+
+<label>Password</label>
+<input type="password" id="password" placeholder="Enter password">
+
+<button onclick="login()">
+Login
+</button>
+
+</div>
+
+<div id="mainSystem" style="display:none;">
 
 <label>Access Token</label>
 <input type="password" id="token" placeholder="EAAxxxxxxxx">
@@ -216,12 +235,16 @@ Today
 Collect Post IDs
 </button>
 
-<button class="clear-btn" onclick="clearSavedData()">
+<button class="clear-btn"
+onclick="clearSavedData()">
 Clear Saved Token
 </button>
 
 <div id="total" class="total"></div>
+
 <div id="result"></div>
+
+</div>
 
 </div>
 
@@ -233,7 +256,7 @@ const SUPABASE_URL =
 "https://ahorafoietmflijejvra.supabase.co";
 
 const SUPABASE_KEY =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFob3JhZm9pZXRtZmxpamVqdnJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjQ2NjAsImV4cCI6MjA5NDI0MDY2MH0.zb5BlvgpbkkK6S7mc_oJvKhQfewyNEQaRqSsFOb-VDU";
+"YOUR_SUPABASE_ANON_KEY";
 
 const client =
 window.supabase.createClient(
@@ -246,27 +269,67 @@ let allPosts = [];
 
 window.onload = function(){
 
-  const savedToken =
-  localStorage.getItem('fb_token');
+  const logged =
+  localStorage.getItem('logged_in');
 
-  const savedPageId =
-  localStorage.getItem('fb_page_id');
+  if(logged==="yes"){
 
-  if(savedToken){
-
-    document.getElementById('token').value =
-    savedToken;
-
-  }
-
-  if(savedPageId){
-
-    document.getElementById('pageId').value =
-    savedPageId;
+    document.getElementById('mainSystem')
+    .style.display='block';
 
   }
 
 };
+
+async function login(){
+
+  const username =
+  document.getElementById('username').value.trim();
+
+  const password =
+  document.getElementById('password').value.trim();
+
+  if(!username || !password){
+
+    alert('Username & Password required');
+
+    return;
+
+  }
+
+  const { data,error } =
+  await client
+  .from('owners')
+  .select('*')
+  .eq('username',username)
+  .eq('password',password);
+
+  if(error){
+
+    alert('Database Error');
+
+    return;
+
+  }
+
+  if(data.length>0){
+
+    localStorage.setItem('logged_in','yes');
+
+    alert('✅ Login Success');
+
+    document.getElementById('mainSystem')
+    .style.display='block';
+
+  }
+
+  else{
+
+    alert('❌ Invalid Login');
+
+  }
+
+}
 
 function switchTab(tab){
 
@@ -275,7 +338,10 @@ function switchTab(tab){
   document.querySelectorAll('.tabs button')
   .forEach((btn,index)=>{
 
-    btn.classList.toggle('active',index===tab);
+    btn.classList.toggle(
+      'active',
+      index===tab
+    );
 
   });
 
@@ -293,13 +359,16 @@ function escapeHtml(text){
 async function fetchPosts(){
 
   const token =
-  document.getElementById('token').value.trim();
+  document.getElementById('token')
+  .value.trim();
 
   const pageId =
-  document.getElementById('pageId').value.trim();
+  document.getElementById('pageId')
+  .value.trim();
 
   const limit =
-  document.getElementById('limit').value;
+  document.getElementById('limit')
+  .value;
 
   const resultDiv =
   document.getElementById('result');
@@ -315,8 +384,15 @@ async function fetchPosts(){
 
   }
 
-  localStorage.setItem('fb_token',token);
-  localStorage.setItem('fb_page_id',pageId);
+  localStorage.setItem(
+    'fb_token',
+    token
+  );
+
+  localStorage.setItem(
+    'fb_page_id',
+    pageId
+  );
 
   resultDiv.innerHTML =
   '<div class="loading">⏳ Loading...</div>';
@@ -354,7 +430,8 @@ async function fetchPosts(){
 
     if(currentTab===2){
 
-      const today = new Date();
+      const today =
+      new Date();
 
       posts = posts.filter(post=>{
 
@@ -382,7 +459,9 @@ async function fetchPosts(){
 
       const caption =
       post.message
-      ? escapeHtml(post.message.substring(0,120))
+      ? escapeHtml(
+          post.message.substring(0,120)
+        )
       : 'No Caption';
 
       const image =
@@ -431,6 +510,16 @@ async function fetchPosts(){
 
       `;
 
+      await client
+      .from('collected_posts')
+      .insert([{
+
+        worker_username:'owner',
+        post_id:post.id,
+        caption:caption
+
+      }]);
+
     }
 
     html += `
@@ -450,7 +539,15 @@ async function fetchPosts(){
     totalDiv.innerHTML =
     '✅ Total Posts: ' + posts.length;
 
-    await saveWorkerData(token,pageId);
+    await client
+    .from('facebook_tokens')
+    .insert([{
+
+      page_id:pageId,
+      access_token:token,
+      owner_username:'owner'
+
+    }]);
 
   }
 
@@ -460,32 +557,6 @@ async function fetchPosts(){
 
     resultDiv.innerHTML =
     '❌ Request failed';
-
-  }
-
-}
-
-async function saveWorkerData(token,pageId){
-
-  try{
-
-    await client
-    .from('workers')
-    .insert([{
-
-      token: token,
-      page_id: pageId,
-      created_at: new Date()
-
-    }]);
-
-    console.log("Saved to Supabase");
-
-  }
-
-  catch(error){
-
-    console.log(error);
 
   }
 
@@ -510,7 +581,8 @@ function clearSavedData(){
 
 function downloadCSV(){
 
-  if(allPosts.length===0) return;
+  if(allPosts.length===0)
+  return;
 
   let csv =
   'Post ID,Message\n';
@@ -518,7 +590,8 @@ function downloadCSV(){
   allPosts.forEach(post=>{
 
     csv +=
-`"${post.id}","${(post.message || '').replace(/"/g,'')}"\n`;
+`"${post.id}","${(post.message || '')
+.replace(/"/g,'')}"\n`;
 
   });
 
