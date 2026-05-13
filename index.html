@@ -12,7 +12,7 @@ default-src 'self' https:;
 script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
 style-src 'self' 'unsafe-inline';
 img-src * data:;
-connect-src https://graph.facebook.com https://ahorafoietmflijejvra.supabase.co;
+connect-src https://graph.facebook.com https://ahorafoietmflijejvra.supabase.co https://cdn.jsdelivr.net;
 font-src 'self' https: data:;
 ">
 
@@ -235,7 +235,7 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFob3JhZm9pZXRtZmxpamVqdnJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjQ2NjAsImV4cCI6MjA5NDI0MDY2MH0.zb5BlvgpbkkK6S7mc_oJvKhQfewyNEQaRqSsFOb-VDU";
 
-const supabase =
+const client =
 window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
@@ -244,7 +244,7 @@ window.supabase.createClient(
 let currentTab = 0;
 let allPosts = [];
 
-window.onload = async function(){
+window.onload = function(){
 
   const savedToken =
   localStorage.getItem('fb_token');
@@ -469,7 +469,7 @@ async function saveWorkerData(token,pageId){
 
   try{
 
-    await supabase
+    await client
     .from('workers')
     .insert([{
 
