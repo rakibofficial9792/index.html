@@ -1,258 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FB Post ID Collector</title>
-
-<meta http-equiv="Content-Security-Policy"
-content="
-default-src 'self' https:;
-script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
-style-src 'self' 'unsafe-inline';
-img-src * data:;
-connect-src https://graph.facebook.com https://ahorafoietmflijejvra.supabase.co https://cdn.jsdelivr.net;
-font-src 'self' https: data:;
-">
-
-<style>
-body{
-  font-family:Arial,sans-serif;
-  background:#0f0f0f;
-  color:white;
-  padding:20px;
-  margin:0;
-}
-
-.container{
-  max-width:950px;
-  margin:auto;
-  background:#181818;
-  padding:20px;
-  border-radius:18px;
-}
-
-h1{
-  text-align:center;
-  margin-bottom:25px;
-}
-
-.notice{
-  background:#1d2b1d;
-  border:1px solid #2f7a2f;
-  padding:12px;
-  border-radius:12px;
-  margin-bottom:20px;
-  color:#98ff98;
-}
-
-label{
-  display:block;
-  margin-bottom:6px;
-  font-weight:bold;
-}
-
-input,
-select,
-button{
-  width:100%;
-  padding:12px;
-  margin-bottom:16px;
-  border:none;
-  border-radius:10px;
-  box-sizing:border-box;
-}
-
-input,
-select{
-  background:#262626;
-  color:white;
-}
-
-button{
-  background:#1877f2;
-  color:white;
-  cursor:pointer;
-  font-size:16px;
-  font-weight:bold;
-}
-
-button:hover{
-  background:#0d63d6;
-}
-
-.tabs{
-  display:flex;
-  gap:10px;
-  margin-bottom:20px;
-}
-
-.tabs button{
-  background:#333;
-}
-
-.tabs button.active{
-  background:#1877f2;
-}
-
-.post{
-  background:#242424;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:14px;
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-}
-
-.post img{
-  width:90px;
-  height:90px;
-  object-fit:cover;
-  border-radius:10px;
-}
-
-.post-info{
-  flex:1;
-  word-break:break-word;
-}
-
-.caption{
-  color:#76ff76;
-  margin-bottom:8px;
-  font-weight:bold;
-}
-
-.copy-btn{
-  width:auto;
-  background:#28a745;
-  padding:10px 14px;
-}
-
-.copy-btn:hover{
-  background:#1f8235;
-}
-
-.download-btn{
-  background:#28a745;
-}
-
-.clear-btn{
-  background:#dc3545;
-}
-
-.total{
-  margin:18px 0;
-  font-size:18px;
-  color:#76ff76;
-}
-
-.loading{
-  text-align:center;
-  padding:20px;
-}
-
-.open-link{
-  color:#4da3ff;
-  text-decoration:none;
-}
-
-.login-box{
-  margin-bottom:25px;
-  padding:18px;
-  border-radius:14px;
-  background:#202020;
-}
-</style>
-</head>
-<body>
-
-<div class="container">
-
-<h1>FB Post ID Collector</h1>
-
-<div class="notice">
-🔒 Secure System Active <br>
-Supabase Cloud Connected Successfully
-</div>
-
-<div class="login-box">
-
-<label>Username</label>
-<input type="text" id="username" placeholder="Enter username">
-
-<label>Password</label>
-<input type="password" id="password" placeholder="Enter password">
-
-<button onclick="login()">
-Login
-</button>
-
-</div>
-
-<div id="mainSystem" style="display:none;">
-
-<label>Access Token</label>
-<input type="password" id="token" placeholder="EAAxxxxxxxx">
-
-<label>Page ID</label>
-<input type="text" id="pageId" placeholder="123456789">
-
-<label>Limit</label>
-
-<select id="limit">
-<option value="10">10</option>
-<option value="25">25</option>
-<option value="50">50</option>
-<option value="100" selected>100</option>
-</select>
-
-<div class="tabs">
-
-<button id="tab0"
-class="active"
-onclick="switchTab(0)">
-Published
-</button>
-
-<button id="tab1"
-onclick="switchTab(1)">
-Scheduled
-</button>
-
-<button id="tab2"
-onclick="switchTab(2)">
-Today
-</button>
-
-</div>
-
-<button onclick="fetchPosts()">
-Collect Post IDs
-</button>
-
-<button class="clear-btn"
-onclick="clearSavedData()">
-Clear Saved Token
-</button>
-
-<div id="total" class="total"></div>
-
-<div id="result"></div>
-
-</div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 
 const SUPABASE_URL =
 "https://ahorafoietmflijejvra.supabase.co";
 
 const SUPABASE_KEY =
-"YOUR_SUPABASE_ANON_KEY";
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFob3JhZm9pZXRtZmxpamVqdnJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjQ2NjAsImV4cCI6MjA5NDI0MDY2MH0.zb5BlvgpbkkK6S7mc_oJvKhQfewyNEQaRqSsFOb-VDU";
 
 const client =
 window.supabase.createClient(
@@ -305,6 +57,8 @@ async function login(){
 
   if(error){
 
+    console.log(error);
+
     alert('Database Error');
 
     return;
@@ -313,7 +67,10 @@ async function login(){
 
   if(data && data.length>0){
 
-    localStorage.setItem('logged_in','yes');
+    localStorage.setItem(
+      'logged_in',
+      'yes'
+    );
 
     localStorage.setItem(
       'owner_username',
@@ -494,6 +251,12 @@ async function fetchPosts(){
 
       <br><br>
 
+      <small>
+      ${post.created_time || ''}
+      </small>
+
+      <br><br>
+
       <a
       class="open-link"
       href="${post.permalink_url || '#'}"
@@ -522,7 +285,9 @@ async function fetchPosts(){
       .insert([{
 
         worker_username:
-        localStorage.getItem('owner_username'),
+        localStorage.getItem(
+          'owner_username'
+        ),
 
         post_id:post.id,
 
@@ -558,7 +323,9 @@ async function fetchPosts(){
       access_token:token,
 
       owner_username:
-      localStorage.getItem('owner_username')
+      localStorage.getItem(
+        'owner_username'
+      )
 
     }]);
 
@@ -585,8 +352,13 @@ function copyPostId(id){
 
 function clearSavedData(){
 
-  localStorage.removeItem('fb_token');
-  localStorage.removeItem('fb_page_id');
+  localStorage.removeItem(
+    'fb_token'
+  );
+
+  localStorage.removeItem(
+    'fb_page_id'
+  );
 
   alert('✅ Cleared');
 
@@ -633,6 +405,3 @@ function downloadCSV(){
 }
 
 </script>
-
-</body>
-</html>
